@@ -1,0 +1,74 @@
+[metadata]
+creation_date = "2025/01/20"
+integration = []
+maturity = "development"
+updated_date = "2025/01/20"
+
+[rule]
+actions = []
+author = ["pH-T (Nextron Systems)"]
+description = """
+Detects DNS queries for "anonfiles.com", which is an anonymous file upload platform often used for malicious purposes
+"""
+enabled = true
+exceptions_list = []
+false_positives = ["Rare legitimate access to anonfiles.com"]
+filters = []
+from = "now-5m"
+index = [
+    "apm-*-transaction*",
+    "auditbeat-*",
+    "endgame-*",
+    "filebeat-*",
+    "logs-*",
+    "packetbeat-*",
+    "traces-apm*",
+    "winlogbeat-*",
+    "-*elastic-cloud-logs-*",
+]
+interval = "5m"
+language = "lucene"
+license = "DRL"
+max_signals = 100
+name = "SIGMA - DNS Query for Anonfiles.com Domain - Sysmon"
+references = [
+    "https://www.trendmicro.com/vinfo/us/security/news/ransomware-spotlight/ransomware-spotlight-blackbyte",
+]
+related_integrations = []
+required_fields = []
+risk_score = 73
+risk_score_mapping = []
+rule_id = "065cceea-77ec-4030-9052-fc0affea7110"
+setup = ""
+severity = "high"
+severity_mapping = []
+tags = []
+to = "now"
+type = "query"
+
+query = '''
+dns.question.name:*.anonfiles.com*
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1567"
+name = "Exfiltration Over Web Service"
+reference = "https://attack.mitre.org/techniques/T1567/"
+[[rule.threat.technique.subtechnique]]
+id = "T1567.002"
+name = "Exfiltration to Cloud Storage"
+reference = "https://attack.mitre.org/techniques/T1567/002/"
+
+
+
+[rule.threat.tactic]
+id = "TA0010"
+name = "Exfiltration"
+reference = "https://attack.mitre.org/tactics/TA0010/"
+
+[rule.meta]
+from = "1m"
+
