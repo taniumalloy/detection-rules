@@ -1,0 +1,61 @@
+[metadata]
+creation_date = "2025/01/20"
+integration = ["windows"]
+maturity = "development"
+updated_date = "2025/01/20"
+
+[rule]
+actions = []
+author = ["1248161470"]
+description = "process test"
+enabled = true
+exceptions_list = []
+false_positives = []
+filters = []
+from = "now-360s"
+index = [
+    "apm-*-transaction*",
+    "auditbeat-*",
+    "endgame-*",
+    "filebeat-*",
+    "logs-*",
+    "packetbeat-*",
+    "traces-apm*",
+    "winlogbeat-*",
+    "-*elastic-cloud-logs-*",
+]
+interval = "5m"
+language = "eql"
+license = ""
+max_signals = 100
+name = "Process Test"
+references = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "bab40709-11d0-4c7e-80ab-f1423defba64"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = ["process"]
+threat = []
+to = "now"
+type = "eql"
+
+query = '''
+process where client.domain == "iot"
+'''
+
+
+[[rule.related_integrations]]
+package = "windows"
+version = "^2.3.6"
+
+[[rule.required_fields]]
+ecs = true
+name = "client.domain"
+type = "keyword"
+
+[rule.meta]
+from = "1m"
+kibana_siem_app_url = "https://da2a.us-central1.gcp.cloud.es.io/s/dev/app/security"
+

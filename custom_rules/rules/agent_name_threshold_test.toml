@@ -1,0 +1,60 @@
+[metadata]
+creation_date = "2025/01/20"
+integration = []
+maturity = "development"
+updated_date = "2025/01/20"
+
+[rule]
+actions = []
+author = ["1248161470"]
+description = "TAgent Name Threshold Test"
+enabled = true
+exceptions_list = []
+false_positives = []
+filters = []
+from = "now-360s"
+index = [
+    "apm-*-transaction*",
+    "auditbeat-*",
+    "endgame-*",
+    "filebeat-*",
+    "logs-*",
+    "packetbeat-*",
+    "traces-apm*",
+    "winlogbeat-*",
+    "-*elastic-cloud-logs-*",
+]
+interval = "5m"
+language = "kuery"
+license = ""
+max_signals = 100
+name = "Agent Name Threshold Test"
+references = []
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "fbabde47-d189-4e0e-b3cb-0686b36661ac"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = []
+threat = []
+to = "now"
+type = "threshold"
+
+query = '''
+agent.name : *
+'''
+
+
+
+[rule.meta]
+from = "1m"
+kibana_siem_app_url = "https://a2a.us-central1.gcp.cloud.es.io/s/dev/app/security"
+
+[rule.threshold]
+cardinality = []
+field = ["agent.name"]
+value = 200
+
