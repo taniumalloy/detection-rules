@@ -4,7 +4,7 @@
 # To run all tests, set bypass to empty or leave this file commented out.
 
 unit_tests:
-    bypass:
+  bypass:
     - tests.test_gh_workflows.TestWorkflows.test_matrix_to_lock_version_defaults
     - tests.test_schemas.TestVersionLockSchema.test_version_lock_has_nested_previous
     - tests.test_packages.TestRegistryPackage.test_registry_package_config
