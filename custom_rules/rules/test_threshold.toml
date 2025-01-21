@@ -58,6 +58,6 @@ field = ["agent.name"]
 value = 200
 [[rule.threshold.cardinality]]
 field = "@timestamp"
-value = 200
+value = 249
 
 
