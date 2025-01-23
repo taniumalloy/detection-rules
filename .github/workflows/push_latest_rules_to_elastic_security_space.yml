@@ -25,7 +25,6 @@ jobs:
   sync-to-production:
     runs-on: ubuntu-latest
     env:
-      KIBANA_HOST: ${{ secrets.KIBANA_HOST }}  # Add your KIBANA_HOST secret here
       CUSTOM_RULES_DIR: ${{ secrets.CUSTOM_RULES_DIR }}
 
     steps:
@@ -51,6 +50,7 @@ jobs:
         # Find all changed .toml files
         CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} -- '*.toml')
         echo "Changed files: $CHANGED_FILES"
+
         # Check for the production tag in the [rule] section
         PROD_FILES=""
         for file in $CHANGED_FILES; do
@@ -62,15 +62,17 @@ jobs:
             echo "No production tag in $file"
           fi
         done
+
         # Fail if no production-tagged files are found
         if [ -z "$PROD_FILES" ]; then
           echo "::warning::No production-tagged rules found. Exiting."
           exit 0
         fi
+
         # Save the list of files for further steps
         echo "PROD_FILES=$PROD_FILES" >> $GITHUB_ENV
-        
-    - name: Import Rules to Kibana (Prod)
+
+    - name: Import Rules to Kibana
       run: |
         FLAGS=""
         
@@ -97,14 +99,8 @@ jobs:
         SPACE_FLAG="--space $SPACE"
         
         # Import the production rules with the correct options
-        curl -X POST "$KIBANA_HOST/api/detection_engine/rules/_import" \
-          -H "kbn-xsrf: true" \
-          -H "Content-Type: application/json" \
-          -u ${{ secrets.DR_KIBANA_USER }}:${{ secrets.DR_KIBANA_PASSWORD }} \
-          -d '{
-            "objects": '"${PROD_FILES}"'
-          }'
-        
+        python -m detection_rules kibana $SPACE_FLAG import-rules $FLAGS --rule-file $PROD_FILES
+
     - name: Delete Rules from Kibana (Dev)
       run: |
         # Fetch the rule IDs from the imported rules (PROD_FILES is saved with rule ID)
@@ -118,6 +114,6 @@ jobs:
             -u ${{ secrets.DR_KIBANA_USER }}:${{ secrets.DR_KIBANA_PASSWORD }}
         done
       env:
-        KIBANA_HOST: ${{ secrets.KIBANA_HOST }}
-        DR_KIBANA_USER: ${{ secrets.DR_KIBANA_USER }}
-        DR_KIBANA_PASSWORD: ${{ secrets.DR_KIBANA_PASSWORD }}
+        DR_CLOUD_ID: ${{ secrets.ELASTIC_CLOUD_ID }}
+        DR_KIBANA_USER: ${{ secrets.ELASTIC_USERNAME }}
+        DR_KIBANA_PASSWORD: ${{ secrets.ELASTIC_PASSWORD }}
