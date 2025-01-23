@@ -11,11 +11,11 @@ description = """
 Detects DNS queries made by "AppInstaller.EXE". The AppInstaller is the default handler for the "ms-appinstaller" URI.
 It attempts to load/install a package from the referenced URL
 """
-enabled = true
+enabled = false
 exceptions_list = []
 false_positives = ["Unknown"]
 filters = []
-from = "now-5m"
+from = "now-300s"
 index = [
     "apm-*-transaction*",
     "auditbeat-*",
@@ -31,7 +31,7 @@ interval = "5m"
 language = "lucene"
 license = "DRL"
 max_signals = 100
-name = "SIGMA - AppX Package Installation Attempts Via AppInstaller.EXE"
+name = "SIGMA - AppX Package Installation Attempts Via AppInstaller.EXE [Duplicate]"
 references = [
     "https://twitter.com/notwhickey/status/1333900137232523264",
     "https://lolbas-project.github.io/lolbas/Binaries/AppInstaller/",
@@ -40,7 +40,7 @@ related_integrations = []
 required_fields = []
 risk_score = 47
 risk_score_mapping = []
-rule_id = "7cff77e1-9663-46a3-8260-17f2e1aa9d0a"
+rule_id = "203fe4b1-a37a-43f1-bf73-cdbfb11ecf64"
 setup = ""
 severity = "medium"
 severity_mapping = []
@@ -68,5 +68,6 @@ name = "Command-And-Control"
 reference = "https://attack.mitre.org/tactics/TA0011/"
 
 [rule.meta]
-from = "1m"
+from = "0s"
+kibana_siem_app_url = ""
 
