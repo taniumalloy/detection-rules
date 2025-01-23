@@ -74,7 +74,9 @@ jobs:
 
     - name: Import Rules to Kibana
       run: |
-        FLAGS="--space prod"  # Default to production space
+        FLAGS=""
+        
+        # Handle overwrite options
         if [[ "${{ github.event_name }}" == "push" || "${{ inputs.overwrite }}" == "true" ]]; then
           FLAGS="$FLAGS --overwrite"
         fi
@@ -84,6 +86,8 @@ jobs:
         if [[ "${{ github.event_name }}" == "push" || "${{ inputs.overwrite_action_connectors }}" == "true" ]]; then
           FLAGS="$FLAGS --overwrite-action-connectors"
         fi
+        
+        # Set the correct space
         if [[ "${{ github.event_name }}" == "push" ]]; then
           SPACE="prod"  # Default to production for push events
         elif [[ "${{ inputs.space }}" == "dev" || "${{ inputs.space }}" == "prod" ]]; then
@@ -94,10 +98,12 @@ jobs:
         fi
         SPACE_FLAG="--space $SPACE"
         
-        # Import the rules using --rule-file instead of --file
-        python -m detection_rules kibana $SPACE_FLAG import-rules --rule-file $PROD_FILES $FLAGS
+        # Import the production rules with the correct options
+        python -m detection_rules kibana $SPACE_FLAG import-rules $FLAGS --rule-file $PROD_FILES
       env:
         DR_CLOUD_ID: ${{ secrets.ELASTIC_CLOUD_ID }}
         DR_KIBANA_USER: ${{ secrets.ELASTIC_USERNAME }}
         DR_KIBANA_PASSWORD: ${{ secrets.ELASTIC_PASSWORD }}
+
+
 
