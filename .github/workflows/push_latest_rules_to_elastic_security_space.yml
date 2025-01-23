@@ -22,73 +22,75 @@ on:
         default: 'true'
 
 jobs:
-  sync-production-rules:
+  sync-to-production:
     runs-on: ubuntu-latest
     env:
       CUSTOM_RULES_DIR: ${{ secrets.CUSTOM_RULES_DIR }}
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.12'
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.12'
 
-      - name: Install Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip cache purge
-          pip install .[dev]
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip cache purge
+        pip install .[dev]
+        
+    - name: Check for Production Tags
+      id: check_tags
+      run: |
+        # Find all changed .toml files
+        CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} -- '*.toml')
+        echo "Changed files: $CHANGED_FILES"
 
-      - name: Check for Production Tags
-        id: check_tags
-        run: |
-          # Find all changed .toml files
-          CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} -- '*.toml')
-          echo "Changed files: $CHANGED_FILES"
-
-          # Check for the production tag in the [rule] section
-          PROD_FILES=""
-          for file in $CHANGED_FILES; do
-            echo "Inspecting $file"
-            if grep -Eiq '^\s*tags\s*=\s*\[.*"production".*\]' "$file"; then
-              echo "Production tag found in $file"
-              PROD_FILES="$PROD_FILES $file"
-            else
-              echo "No production tag in $file"
-            fi
-          done
-
-          # Fail if no production-tagged files are found
-          if [ -z "$PROD_FILES" ]; then
-            echo "::warning::No production-tagged rules found. Exiting."
-            exit 0
+        # Check for the production tag in the [rule] section
+        PROD_FILES=""
+        for file in $CHANGED_FILES; do
+          echo "Inspecting $file"
+          if grep -Eiq '^\s*tags\s*=\s*\[.*"production".*\]' "$file"; then
+            echo "Production tag found in $file"
+            PROD_FILES="$PROD_FILES $file"
+          else
+            echo "No production tag in $file"
           fi
+        done
 
-          # Save the list of files for further steps
-          echo "PROD_FILES=$PROD_FILES" >> $GITHUB_ENV
+        # Fail if no production-tagged files are found
+        if [ -z "$PROD_FILES" ]; then
+          echo "::warning::No production-tagged rules found. Exiting."
+          exit 0
+        fi
 
-      - name: Import Rules to Kibana
-        run: |
-          FLAGS="--space prod"
-          if [[ "${{ inputs.overwrite }}" == "true" ]]; then
-            FLAGS="$FLAGS --overwrite"
-          fi
-          if [[ "${{ inputs.overwrite_exceptions }}" == "true" ]]; then
-            FLAGS="$FLAGS --overwrite-exceptions"
-          fi
-          if [[ "${{ inputs.overwrite_action_connectors }}" == "true" ]]; then
-            FLAGS="$FLAGS --overwrite-action-connectors"
-          fi
+        # Save the list of files for further steps
+        echo "PROD_FILES=$PROD_FILES" >> $GITHUB_ENV
 
-          # Import only the production-tagged rules
-          for file in $PROD_FILES; do
-            echo "Importing $file"
-            python -m detection_rules kibana $FLAGS import-rules --file "$file"
-          done
-        env:
-          DR_CLOUD_ID: ${{ secrets.ELASTIC_CLOUD_ID }}
-          DR_KIBANA_USER: ${{ secrets.ELASTIC_USERNAME }}
+    - name: Import Rules to Kibana
+      run: |
+        FLAGS="--space prod"
+        if [[ "${{ inputs.overwrite }}" == "true" ]]; then
+          FLAGS="$FLAGS --overwrite"
+        fi
+        if [[ "${{ inputs.overwrite_exceptions }}" == "true" ]]; then
+          FLAGS="$FLAGS --overwrite-exceptions"
+        fi
+        if [[ "${{ inputs.overwrite_action_connectors }}" == "true" ]]; then
+          FLAGS="$FLAGS --overwrite-action-connectors"
+        fi
+
+        # Import only the production-tagged rules
+        for file in $PROD_FILES; do
+          echo "Importing $file"
+          python -m detection_rules kibana $FLAGS import-rules --file "$file"
+        done
+      env:
+        DR_CLOUD_ID: ${{ secrets.ELASTIC_CLOUD_ID }}
+        DR_KIBANA_USER: ${{ secrets.ELASTIC_USERNAME }}
           DR_KIBANA_PASSWORD: ${{ secrets.ELASTIC_PASSWORD }}
