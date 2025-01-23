@@ -34,6 +34,8 @@ jobs:
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Set up Python 3.12
       uses: actions/setup-python@v2
@@ -70,22 +72,3 @@ jobs:
 
         # Save the list of files for further steps
         echo "PROD_FILES=$PROD_FILES" >> $GITHUB_ENV
-
-    - name: Import Rules to Kibana
-      if: ${{ env.PROD_FILES }}
-      run: |
-        FLAGS=""
-        if [[ "${{ github.event_name }}" == "push" || "${{ inputs.overwrite }}" == "true" ]]; then
-          FLAGS="$FLAGS --overwrite"
-        fi
-        if [[ "${{ github.event_name }}" == "push" || "${{ inputs.overwrite_exceptions }}" == "true" ]]; then
-          FLAGS="$FLAGS --overwrite-exceptions"
-        fi
-        if [[ "${{ github.event_name }}" == "push" || "${{ inputs.overwrite_action_connectors }}" == "true" ]]; then
-          FLAGS="$FLAGS --overwrite-action-connectors"
-        fi
-        python -m detection_rules kibana --space prod import-rules $FLAGS --files ${{ env.PROD_FILES }}
-      env:
-        DR_CLOUD_ID: ${{ secrets.ELASTIC_CLOUD_ID }}
-        DR_KIBANA_USER: ${{ secrets.ELASTIC_USERNAME }}
-        DR_KIBANA_PASSWORD: ${{ secrets.ELASTIC_PASSWORD }}
