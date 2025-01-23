@@ -25,6 +25,7 @@ jobs:
   sync-to-production:
     runs-on: ubuntu-latest
     env:
+      KIBANA_HOST: ${{ secrets.KIBANA_HOST }}  # Add your KIBANA_HOST secret here
       CUSTOM_RULES_DIR: ${{ secrets.CUSTOM_RULES_DIR }}
 
     steps:
@@ -50,7 +51,6 @@ jobs:
         # Find all changed .toml files
         CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} -- '*.toml')
         echo "Changed files: $CHANGED_FILES"
-
         # Check for the production tag in the [rule] section
         PROD_FILES=""
         for file in $CHANGED_FILES; do
@@ -62,28 +62,15 @@ jobs:
             echo "No production tag in $file"
           fi
         done
-
         # Fail if no production-tagged files are found
         if [ -z "$PROD_FILES" ]; then
           echo "::warning::No production-tagged rules found. Exiting."
           exit 0
         fi
-
         # Save the list of files for further steps
         echo "PROD_FILES=$PROD_FILES" >> $GITHUB_ENV
-
-    - name: Remove Rules from Dev Space
-      run: |
-        SPACE="dev"
-        SPACE_FLAG="--space $SPACE"
         
-        # Get list of production-tagged rules from the dev space and remove them
-        for file in $PROD_FILES; do
-          echo "Removing $file from $SPACE"
-          python -m detection_rules kibana $SPACE_FLAG delete-rule --rule-file $file
-        done
-
-    - name: Import Rules to Kibana
+    - name: Import Rules to Kibana (Prod)
       run: |
         FLAGS=""
         
@@ -110,11 +97,27 @@ jobs:
         SPACE_FLAG="--space $SPACE"
         
         # Import the production rules with the correct options
-        python -m detection_rules kibana $SPACE_FLAG import-rules $FLAGS --rule-file $PROD_FILES
+        curl -X POST "$KIBANA_HOST/api/detection_engine/rules/_import" \
+          -H "kbn-xsrf: true" \
+          -H "Content-Type: application/json" \
+          -u ${{ secrets.DR_KIBANA_USER }}:${{ secrets.DR_KIBANA_PASSWORD }} \
+          -d '{
+            "objects": '"${PROD_FILES}"'
+          }'
+        
+    - name: Delete Rules from Kibana (Dev)
+      run: |
+        # Fetch the rule IDs from the imported rules (PROD_FILES is saved with rule ID)
+        for file in $PROD_FILES; do
+          RULE_ID=$(grep -oP 'rule_id\s*=\s*"\K[^\"]+' "$file")
+          echo "Deleting rule with ID: $RULE_ID"
+          
+          # Delete rule from dev space
+          curl -X DELETE "$KIBANA_HOST/api/detection_engine/rules/_delete/$RULE_ID" \
+            -H "kbn-xsrf: true" \
+            -u ${{ secrets.DR_KIBANA_USER }}:${{ secrets.DR_KIBANA_PASSWORD }}
+        done
       env:
-        DR_CLOUD_ID: ${{ secrets.ELASTIC_CLOUD_ID }}
-        DR_KIBANA_USER: ${{ secrets.ELASTIC_USERNAME }}
-        DR_KIBANA_PASSWORD: ${{ secrets.ELASTIC_PASSWORD }}
-
-
-
+        KIBANA_HOST: ${{ secrets.KIBANA_HOST }}
+        DR_KIBANA_USER: ${{ secrets.DR_KIBANA_USER }}
+        DR_KIBANA_PASSWORD: ${{ secrets.DR_KIBANA_PASSWORD }}
