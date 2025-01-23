@@ -1,4 +1,3 @@
-# Example GitHub Action Workflow
 name: Push Latest Rules to Elastic Security Space
 
 on:
@@ -47,7 +46,33 @@ jobs:
         pip cache purge
         pip install .[dev]
 
+    - name: Check for Production Tags
+      id: check_tags
+      run: |
+        # Find all changed .toml files
+        CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} -- '*.toml')
+        echo "Changed files: $CHANGED_FILES"
+
+        # Check for the production tag
+        PROD_FILES=""
+        for file in $CHANGED_FILES; do
+          if grep -q 'tags:.*production' "$file"; then
+            echo "Production tag found in $file"
+            PROD_FILES="$PROD_FILES $file"
+          fi
+        done
+
+        # Fail if no production-tagged files are found
+        if [ -z "$PROD_FILES" ]; then
+          echo "::warning::No production-tagged rules found. Exiting."
+          exit 0
+        fi
+
+        # Save the list of files for further steps
+        echo "PROD_FILES=$PROD_FILES" >> $GITHUB_ENV
+
     - name: Import Rules to Kibana
+      if: ${{ env.PROD_FILES }}
       run: |
         FLAGS=""
         if [[ "${{ github.event_name }}" == "push" || "${{ inputs.overwrite }}" == "true" ]]; then
@@ -59,16 +84,7 @@ jobs:
         if [[ "${{ github.event_name }}" == "push" || "${{ inputs.overwrite_action_connectors }}" == "true" ]]; then
           FLAGS="$FLAGS --overwrite-action-connectors"
         fi
-        if [[ "${{ github.event_name }}" == "push" ]]; then
-          SPACE="prod"  # Default to production for push events
-        elif [[ "${{ inputs.space }}" == "dev" || "${{ inputs.space }}" == "prod" ]]; then
-          SPACE="${{ inputs.space }}"  # Use provided space if valid
-        else
-          echo "::error::Invalid space provided. Defaulting to 'dev'."
-          SPACE="dev"
-        fi
-        SPACE_FLAG="--space $SPACE"
-        python -m detection_rules kibana $SPACE_FLAG import-rules $FLAGS
+        python -m detection_rules kibana --space prod import-rules $FLAGS --files ${{ env.PROD_FILES }}
       env:
         DR_CLOUD_ID: ${{ secrets.ELASTIC_CLOUD_ID }}
         DR_KIBANA_USER: ${{ secrets.ELASTIC_USERNAME }}
