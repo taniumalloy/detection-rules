@@ -55,12 +55,15 @@ jobs:
         CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} -- '*.toml')
         echo "Changed files: $CHANGED_FILES"
 
-        # Check for the production tag
+        # Check for the production tag in the [rule] section
         PROD_FILES=""
         for file in $CHANGED_FILES; do
-          if grep -q 'tags:.*production' "$file"; then
+          echo "Inspecting $file"
+          if grep -Eiq '^\s*tags\s*=\s*\[.*"production".*\]' "$file"; then
             echo "Production tag found in $file"
             PROD_FILES="$PROD_FILES $file"
+          else
+            echo "No production tag in $file"
           fi
         done
 
