@@ -1,0 +1,63 @@
+[metadata]
+creation_date = "2025/01/23"
+integration = []
+maturity = "development"
+updated_date = "2025/01/23"
+
+[rule]
+actions = []
+author = ["1248161470"]
+description = "Test Threshold"
+enabled = false
+exceptions_list = []
+false_positives = []
+filters = []
+from = "now-360s"
+index = [
+    "apm-*-transaction*",
+    "auditbeat-*",
+    "endgame-*",
+    "filebeat-*",
+    "logs-*",
+    "packetbeat-*",
+    "traces-apm*",
+    "winlogbeat-*",
+    "-*elastic-cloud-logs-*",
+]
+interval = "5m"
+language = "kuery"
+license = ""
+max_signals = 100
+name = "Test Threshold [Duplicate] [Duplicate] [Duplicate] [Duplicate] [Duplicate] [Duplicate]"
+references = []
+related_integrations = []
+required_fields = []
+risk_score = 21
+risk_score_mapping = []
+rule_id = "f83a31fd-8450-4893-aafb-7c1762d1aa8d"
+setup = ""
+severity = "low"
+severity_mapping = []
+tags = ["production"]
+threat = []
+to = "now"
+type = "threshold"
+
+query = '''
+@timestamp : *
+'''
+
+
+
+[rule.meta]
+from = "1m"
+kibana_siem_app_url = "https://a87a2eda3ce9492db890337adc17da2a.us-central1.gcp.cloud.es.io/s/dev/app/security"
+
+[rule.threshold]
+field = ["agent.name"]
+value = 200
+[[rule.threshold.cardinality]]
+field = "@timestamp"
+value = 249
+
+
