@@ -74,23 +74,30 @@ jobs:
 
     - name: Import Rules to Kibana
       run: |
-        FLAGS="--space prod"
-        if [[ "${{ inputs.overwrite }}" == "true" ]]; then
+        FLAGS="--space prod"  # Default to production space
+        if [[ "${{ github.event_name }}" == "push" || "${{ inputs.overwrite }}" == "true" ]]; then
           FLAGS="$FLAGS --overwrite"
         fi
-        if [[ "${{ inputs.overwrite_exceptions }}" == "true" ]]; then
+        if [[ "${{ github.event_name }}" == "push" || "${{ inputs.overwrite_exceptions }}" == "true" ]]; then
           FLAGS="$FLAGS --overwrite-exceptions"
         fi
-        if [[ "${{ inputs.overwrite_action_connectors }}" == "true" ]]; then
+        if [[ "${{ github.event_name }}" == "push" || "${{ inputs.overwrite_action_connectors }}" == "true" ]]; then
           FLAGS="$FLAGS --overwrite-action-connectors"
         fi
-
-        # Import only the production-tagged rules
-        for file in $PROD_FILES; do
-          echo "Importing $file"
-          python -m detection_rules kibana $FLAGS import-rules --file "$file"
-        done
+        if [[ "${{ github.event_name }}" == "push" ]]; then
+          SPACE="prod"  # Default to production for push events
+        elif [[ "${{ inputs.space }}" == "dev" || "${{ inputs.space }}" == "prod" ]]; then
+          SPACE="${{ inputs.space }}"  # Use provided space if valid
+        else
+          echo "::error::Invalid space provided. Defaulting to 'dev'."
+          SPACE="dev"
+        fi
+        SPACE_FLAG="--space $SPACE"
+        
+        # Import the rules using --rule-file instead of --file
+        python -m detection_rules kibana $SPACE_FLAG import-rules --rule-file $PROD_FILES $FLAGS
       env:
         DR_CLOUD_ID: ${{ secrets.ELASTIC_CLOUD_ID }}
         DR_KIBANA_USER: ${{ secrets.ELASTIC_USERNAME }}
         DR_KIBANA_PASSWORD: ${{ secrets.ELASTIC_PASSWORD }}
+
