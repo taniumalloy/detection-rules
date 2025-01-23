@@ -100,20 +100,10 @@ jobs:
         
         # Import the production rules with the correct options
         python -m detection_rules kibana $SPACE_FLAG import-rules $FLAGS --rule-file $PROD_FILES
-
-    - name: Delete Rules from Kibana (Dev)
-      run: |
-        # Fetch the rule IDs from the imported rules (PROD_FILES is saved with rule ID)
-        for file in $PROD_FILES; do
-          RULE_ID=$(grep -oP 'rule_id\s*=\s*"\K[^\"]+' "$file")
-          echo "Deleting rule with ID: $RULE_ID"
-          
-          # Delete rule from dev space
-          curl -X DELETE "$KIBANA_HOST/api/detection_engine/rules/_delete/$RULE_ID" \
-            -H "kbn-xsrf: true" \
-            -u ${{ secrets.DR_KIBANA_USER }}:${{ secrets.DR_KIBANA_PASSWORD }}
-        done
       env:
         DR_CLOUD_ID: ${{ secrets.ELASTIC_CLOUD_ID }}
         DR_KIBANA_USER: ${{ secrets.ELASTIC_USERNAME }}
         DR_KIBANA_PASSWORD: ${{ secrets.ELASTIC_PASSWORD }}
+
+
+
