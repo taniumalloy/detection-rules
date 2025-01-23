@@ -44,7 +44,7 @@ rule_id = "203fe4b1-a37a-43f1-bf73-cdbfb11ecf64"
 setup = ""
 severity = "medium"
 severity_mapping = []
-tags = []
+tags = ["production"]
 to = "now"
 type = "query"
 
