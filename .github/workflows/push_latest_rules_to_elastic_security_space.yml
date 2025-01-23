@@ -72,7 +72,7 @@ jobs:
         # Save the list of files for further steps
         echo "PROD_FILES=$PROD_FILES" >> $GITHUB_ENV
 
-    - name: Import Rules to Kibana
+    - name: Import Rules to Kibana (Prod)
       run: |
         FLAGS=""
         
@@ -105,5 +105,26 @@ jobs:
         DR_KIBANA_USER: ${{ secrets.ELASTIC_USERNAME }}
         DR_KIBANA_PASSWORD: ${{ secrets.ELASTIC_PASSWORD }}
 
+    - name: Delete Rules from Kibana (Dev)
+      run: |
+        # Delete rules from the dev space after successfully importing to prod
+        for file in $PROD_FILES; do
+          # Extract rule_id from the rule file
+          RULE_ID=$(grep -oP 'rule_id\s*=\s*"\K[^\"]+' "$file")
+          
+          # Ensure we have a valid rule_id
+          if [[ -z "$RULE_ID" ]]; then
+            echo "::warning::No rule_id found for $file. Skipping deletion."
+            continue
+          fi
 
-
+          # Delete the rule from the dev space
+          echo "Deleting rule with ID: $RULE_ID from the dev space"
+          curl -X DELETE "$KIBANA_HOST/api/detection_engine/rules/_delete/$RULE_ID" \
+            -H "kbn-xsrf: true" \
+            -u ${{ secrets.DR_KIBANA_USER }}:${{ secrets.DR_KIBANA_PASSWORD }}
+        done
+      env:
+        KIBANA_HOST: ${{ secrets.KIBANA_HOST }}
+        DR_KIBANA_USER: ${{ secrets.DR_KIBANA_USER }}
+        DR_KIBANA_PASSWORD: ${{ secrets.DR_KIBANA_PASSWORD }}
