@@ -120,7 +120,7 @@ jobs:
 
           # Delete the rule from the dev space
           echo "Deleting rule with ID: $RULE_ID from the dev space"
-          curl -X DELETE "$KIBANA_HOST/api/detection_engine/rules/_delete/$RULE_ID" \
+          curl -X DELETE "$KIBANA_HOST/s/dev/api/detection_engine/rules?rule_id=$RULE_ID" \
             -H "kbn-xsrf: true" \
             -u ${{ secrets.DR_KIBANA_USER }}:${{ secrets.DR_KIBANA_PASSWORD }}
         done
