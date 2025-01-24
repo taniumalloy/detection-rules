@@ -29,7 +29,7 @@ jobs:
           fetch_rules() {
             SPACE=$1
             OUTPUT_FILE=$2
-            curl -s -X GET "$KIBANA_HOST/s/$SPACE/api/detection_engine/rules/_export" \
+            curl -s -X POST "$KIBANA_HOST/s/$SPACE/api/detection_engine/rules/_export" \
               -H "kbn-xsrf: true" \
               -u "$DR_KIBANA_USER:$DR_KIBANA_PASSWORD" | \
               jq -r '.data[] | {rule_id: .rule_id, content: .}' > "$OUTPUT_FILE"
