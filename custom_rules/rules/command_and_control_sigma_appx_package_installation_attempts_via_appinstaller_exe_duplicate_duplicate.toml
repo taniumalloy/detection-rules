@@ -40,11 +40,11 @@ related_integrations = []
 required_fields = []
 risk_score = 47
 risk_score_mapping = []
-rule_id = "4aa04a1a-7d44-4142-940a-2ca927ecbbf2"
+rule_id = "6e09dcb6-1c9d-4d99-b787-da4a5d4da452"
 setup = ""
 severity = "medium"
 severity_mapping = []
-tags = ["production"]
+tags = []
 to = "now"
 type = "query"
 
