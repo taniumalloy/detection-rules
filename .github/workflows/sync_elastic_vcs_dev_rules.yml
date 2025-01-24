@@ -26,8 +26,8 @@ jobs:
       - name: Sync dev rules from Elastic Cloud
         env:
           KIBANA_HOST: ${{ secrets.KIBANA_HOST }}
-          KIBANA_USER: ${{ secrets.KIBANA_USER }}
-          KIBANA_PASSWORD: ${{ secrets.KIBANA_PASSWORD }}
+          KIBANA_USER: ${{ secrets.DR_KIBANA_USER }}
+          KIBANA_PASSWORD: ${{ secrets.DR_KIBANA_PASSWORD }}
         run: |
           python <<EOF
           import os
