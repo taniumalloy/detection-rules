@@ -44,11 +44,15 @@ jobs:
               page = 1
 
               while True:
-                  response = requests.get(
-                      url, headers=HEADERS, auth=AUTH, params={"page": page, "per_page": 100}
-                  )
-                  response.raise_for_status()
-                  data = response.json()
+                  try:
+                      response = requests.get(
+                          url, headers=HEADERS, auth=AUTH, params={"page": page, "per_page": 100}
+                      )
+                      response.raise_for_status()
+                      data = response.json()
+                  except requests.RequestException as e:
+                      print(f"Error fetching rules: {e}")
+                      exit(1)
 
                   rules.extend(data["data"])
                   if page >= data["total_pages"]:
@@ -68,6 +72,8 @@ jobs:
               existing_files = {file.stem: file for file in RULES_DIR.glob("*.json")}
               new_files = {}
 
+              added, updated, deleted = 0, 0, 0
+
               # Process and sync rules
               for rule in rules:
                   rule_id = rule["rule_id"]
@@ -82,22 +88,25 @@ jobs:
                       existing_hash = calculate_hash(json.loads(existing_files[rule_id].read_text()))
                       if existing_hash == rule_hash:
                           continue  # No changes
+                      updated += 1
+                  else:
+                      added += 1
 
                   # Write updated rule
                   with open(file_path, "w") as file:
                       json.dump(rule, file, indent=2)
-                  print(f"Updated rule: {rule_id}")
 
               # Remove files for deleted rules
               for rule_id, file_path in existing_files.items():
                   if rule_id not in new_files:
                       file_path.unlink()
-                      print(f"Deleted rule: {rule_id}")
+                      deleted += 1
+
+              # Summary of changes
+              print(f"Sync complete. Added: {added}, Updated: {updated}, Deleted: {deleted}")
 
           def main():
               RULES_DIR.mkdir(exist_ok=True)
-
-              # Sync dev rules
               print("Syncing dev rules...")
               dev_rules = fetch_rules(DEV_URL)
               sync_rules(dev_rules)
@@ -112,4 +121,3 @@ jobs:
           git add custom_rules/dev
           git commit -m "Sync dev rules from Elastic Cloud" || echo "No changes to commit"
           git push
-
