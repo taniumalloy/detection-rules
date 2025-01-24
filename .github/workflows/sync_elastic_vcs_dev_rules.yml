@@ -25,7 +25,7 @@ jobs:
 
       - name: Sync dev rules from Elastic Cloud
         env:
-          KIBANA_HOST_DEV: ${{ secrets.KIBANA_HOST }}
+          KIBANA_HOST: ${{ secrets.KIBANA_HOST }}
           KIBANA_USER: ${{ secrets.KIBANA_USER }}
           KIBANA_PASSWORD: ${{ secrets.KIBANA_PASSWORD }}
         run: |
