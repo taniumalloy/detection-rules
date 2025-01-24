@@ -72,7 +72,7 @@ jobs:
         # Save the list of files for further steps
         echo "PROD_FILES=$PROD_FILES" >> $GITHUB_ENV
 
-    - name: Import Rules to Kibana (Prod)
+    - name: Import Rules to Kibana
       run: |
         FLAGS=""
         
