@@ -1,4 +1,4 @@
-name: Sync Elastic and VCS Dev Rules
+name: Sync Elastic and VCS Prod Rules
 
 on:
   workflow_dispatch:
