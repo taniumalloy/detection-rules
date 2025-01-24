@@ -1,4 +1,4 @@
-name: Manually Sync Rules from Elastic Security to GitHub
+name: Sync Elastic and VCS Dev Rules
 
 on:
   workflow_dispatch:
