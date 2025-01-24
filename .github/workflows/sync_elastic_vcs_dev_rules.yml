@@ -26,6 +26,7 @@ jobs:
           KIBANA_USER: ${{ secrets.KIBANA_USER }}
           KIBANA_PASSWORD: ${{ secrets.KIBANA_PASSWORD }}
         run: |
+          python <<EOF
           import os
           import requests
           import hashlib
@@ -113,6 +114,7 @@ jobs:
 
           if __name__ == "__main__":
               main()
+          EOF
 
       - name: Commit and Push changes
         run: |
