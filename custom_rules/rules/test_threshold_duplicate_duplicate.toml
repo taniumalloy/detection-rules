@@ -1,8 +1,8 @@
 [metadata]
-creation_date = "2025/01/23"
+creation_date = "2025/01/24"
 integration = []
 maturity = "development"
-updated_date = "2025/01/23"
+updated_date = "2025/01/24"
 
 [rule]
 actions = []
@@ -34,7 +34,7 @@ related_integrations = []
 required_fields = []
 risk_score = 21
 risk_score_mapping = []
-rule_id = "046b038f-4198-49bf-b761-37d5d909c6af"
+rule_id = "30fb7676-e438-4844-aa95-b6d31f1c03e6"
 setup = ""
 severity = "low"
 severity_mapping = []
