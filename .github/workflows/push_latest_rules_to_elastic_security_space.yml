@@ -107,6 +107,9 @@ jobs:
 
     - name: Delete Rules from Kibana (Dev)
       run: |
+        # Encode username:password to Base64
+        BASIC_AUTH=$(echo -n "${{ secrets.DR_KIBANA_USER }}:${{ secrets.DR_KIBANA_PASSWORD }}" | base64)
+        
         # Delete rules from the dev space after successfully importing to prod
         for file in $PROD_FILES; do
           # Extract rule_id from the rule file
@@ -117,14 +120,15 @@ jobs:
             echo "::warning::No rule_id found for $file. Skipping deletion."
             continue
           fi
-
+    
           # Delete the rule from the dev space
           echo "Deleting rule with ID: $RULE_ID from the dev space"
           curl -X DELETE "$KIBANA_HOST/s/dev/api/detection_engine/rules?rule_id=$RULE_ID" \
-            -H "kbn-xsrf: true" \
-            -u ${{ secrets.DR_KIBANA_USER }}:${{ secrets.DR_KIBANA_PASSWORD }}
+              -H "kbn-xsrf: true" \
+              -H "Authorization: Basic $BASIC_AUTH"
         done
       env:
         KIBANA_HOST: ${{ secrets.KIBANA_HOST }}
         DR_KIBANA_USER: ${{ secrets.DR_KIBANA_USER }}
         DR_KIBANA_PASSWORD: ${{ secrets.DR_KIBANA_PASSWORD }}
+
