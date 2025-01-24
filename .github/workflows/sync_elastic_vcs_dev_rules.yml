@@ -8,8 +8,13 @@ on:
         required: false
         default: 'dev'
 
+name: Fetch Dev Rules
+
+on:
+  workflow_dispatch:
+
 jobs:
-  sync-dev-rules:
+  fetch-dev-rules:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -23,106 +28,68 @@ jobs:
       - name: Install dependencies
         run: pip install requests
 
-      - name: Sync dev rules from Elastic Cloud
+      - name: Fetch and save rules from dev space
         env:
-          KIBANA_HOST: ${{ secrets.KIBANA_HOST }}
+          KIBANA_HOST_DEV: ${{ secrets.KIBANA_HOST }}
           KIBANA_USER: ${{ secrets.DR_KIBANA_USER }}
           KIBANA_PASSWORD: ${{ secrets.DR_KIBANA_PASSWORD }}
         run: |
           python <<EOF
           import os
           import requests
-          import hashlib
           import json
           from pathlib import Path
           
           # Environment variables
-          DEV_URL = f"{os.environ['KIBANA_HOST']}/s/dev/api/detection_engine/rules/_find"
+          DEV_URL = f"{os.environ['KIBANA_HOST_DEV']}/s/dev/api/detection_engine/rules/_find"
           AUTH = (os.environ['KIBANA_USER'], os.environ['KIBANA_PASSWORD'])
           HEADERS = {"kbn-xsrf": "true"}
           RULES_DIR = Path("custom_rules/dev")
-          
+
           def fetch_rules(url):
               """Fetch all rules from the given Elastic Cloud space."""
               rules = []
               page = 1
-          
+
               while True:
-                  try:
-                      response = requests.get(
-                          url, headers=HEADERS, auth=AUTH, params={"page": page, "per_page": 100}
-                      )
-                      response.raise_for_status()
-                      data = response.json()
-                  except requests.RequestException as e:
-                      print(f"Error fetching rules: {e}")
-                      exit(1)
-          
+                  response = requests.get(
+                      url, headers=HEADERS, auth=AUTH, params={"page": page, "per_page": 100}
+                  )
+                  response.raise_for_status()
+                  data = response.json()
+
                   rules.extend(data["data"])
                   if page >= data["total_pages"]:
                       break
                   page += 1
-          
+
               return rules
-          
-          def calculate_hash(content):
-              """Calculate SHA256 hash for a given JSON object."""
-              return hashlib.sha256(json.dumps(content, sort_keys=True).encode()).hexdigest()
-          
-          def sync_rules(rules):
-              """Sync rules to the local custom_rules/dev folder."""
+
+          def save_rules(rules):
+              """Save rules to the custom_rules/dev directory."""
               RULES_DIR.mkdir(parents=True, exist_ok=True)
-          
-              existing_files = {file.stem: file for file in RULES_DIR.glob("*.json")}
-              new_files = {}
-          
-              added, updated, deleted = 0, 0, 0
-          
-              # Process and sync rules
+
               for rule in rules:
                   rule_id = rule["rule_id"]
-                  rule_hash = calculate_hash(rule)
-                  file_name = f"{rule_id}.json"
-                  file_path = RULES_DIR / file_name
-          
-                  new_files[rule_id] = file_path
-          
-                  # Check if the rule exists and matches
-                  if rule_id in existing_files:
-                      existing_hash = calculate_hash(json.loads(existing_files[rule_id].read_text()))
-                      if existing_hash == rule_hash:
-                          continue  # No changes
-                      updated += 1
-                  else:
-                      added += 1
-          
-                  # Write updated rule
+                  file_path = RULES_DIR / f"{rule_id}.json"
+
                   with open(file_path, "w") as file:
                       json.dump(rule, file, indent=2)
-          
-              # Remove files for deleted rules
-              for rule_id, file_path in existing_files.items():
-                  if rule_id not in new_files:
-                      file_path.unlink()
-                      deleted += 1
-          
-              # Summary of changes
-              print(f"Sync complete. Added: {added}, Updated: {updated}, Deleted: {deleted}")
-          
+
+              print(f"Saved {len(rules)} rules to {RULES_DIR}")
+
           def main():
-              RULES_DIR.mkdir(exist_ok=True)
-              print("Syncing dev rules...")
               dev_rules = fetch_rules(DEV_URL)
-              sync_rules(dev_rules)
-          
+              save_rules(dev_rules)
+
           if __name__ == "__main__":
               main()
           EOF
 
-      - name: Commit and Push changes
+      - name: Commit and push changes
         run: |
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           git add custom_rules/dev
-          git commit -m "Sync dev rules from Elastic Cloud" || echo "No changes to commit"
+          git commit -m "Fetch dev rules from Elastic Cloud" || echo "No changes to commit"
           git push
