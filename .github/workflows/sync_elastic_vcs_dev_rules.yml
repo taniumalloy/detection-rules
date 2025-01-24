@@ -25,7 +25,7 @@ jobs:
 
       - name: Sync dev rules from Elastic Cloud
         env:
-          KIBANA_HOST_DEV: ${{ secrets.KIBANA_HOST_DEV }}
+          KIBANA_HOST_DEV: ${{ secrets.KIBANA_HOST }}
           KIBANA_USER: ${{ secrets.KIBANA_USER }}
           KIBANA_PASSWORD: ${{ secrets.KIBANA_PASSWORD }}
         run: |
@@ -37,7 +37,7 @@ jobs:
           from pathlib import Path
           
           # Environment variables
-          DEV_URL = f"{os.environ['KIBANA_HOST_DEV']}/api/detection_engine/rules/_find"
+          DEV_URL = f"{os.environ['KIBANA_HOST']}/s/dev/api/detection_engine/rules/_find"
           AUTH = (os.environ['KIBANA_USER'], os.environ['KIBANA_PASSWORD'])
           HEADERS = {"kbn-xsrf": "true"}
           RULES_DIR = Path("custom_rules/dev")
