@@ -44,6 +44,12 @@ jobs:
         DR_KIBANA_USER: ${{ secrets.ELASTIC_USERNAME }}
         DR_KIBANA_PASSWORD: ${{ secrets.ELASTIC_PASSWORD }}
 
+    # Pull latest changes from the remote main branch
+    - name: Pull latest changes from main
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+        git pull origin main --rebase
 
     - name: Create Pull Request
       if: ${{ github.event.inputs.pr_sync_rules_from_elastic == 'true' }}
