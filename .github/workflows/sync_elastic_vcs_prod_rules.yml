@@ -6,7 +6,7 @@ on:
       pr_sync_rules_from_elastic:
         description: 'Sync rules from Elastic Security (direct commit (false) vs PR (true))'
         required: true
-        default: 'true'
+        default: 'false'
       space:
         description: 'Specify the Kibana space to export rules from'
         required: false
