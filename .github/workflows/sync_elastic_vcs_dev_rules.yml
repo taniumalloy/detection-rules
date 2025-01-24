@@ -8,14 +8,10 @@ on:
         required: false
         default: 'dev'
 
-name: Fetch Dev Rules
-
-on:
-  workflow_dispatch:
-
 jobs:
   fetch-dev-rules:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -66,7 +62,11 @@ jobs:
               return rules
 
           def save_rules(rules):
-              """Save rules to the custom_rules/dev directory."""
+              """Clear and save rules to the custom_rules/dev directory."""
+              if RULES_DIR.exists():
+                  for file in RULES_DIR.glob("*"):
+                      file.unlink()  # Remove all files in the directory
+
               RULES_DIR.mkdir(parents=True, exist_ok=True)
 
               for rule in rules:
@@ -91,5 +91,5 @@ jobs:
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           git add custom_rules/dev
-          git commit -m "Fetch dev rules from Elastic Cloud" || echo "No changes to commit"
+          git commit -m "Sync dev rules from Elastic Cloud" || echo "No changes to commit"
           git push
