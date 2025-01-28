@@ -31,7 +31,7 @@ interval = "5m"
 language = "lucene"
 license = "DRL"
 max_signals = 100
-name = "SIGMA - AppX Package Installation Attempts Via AppInstaller.EXE [Duplicate]"
+name = "SIGMA - AppX Package Installation Attempts Via AppInstaller.EXE [Duplicate] [Duplicate]"
 references = [
     "https://twitter.com/notwhickey/status/1333900137232523264",
     "https://lolbas-project.github.io/lolbas/Binaries/AppInstaller/",
@@ -40,11 +40,11 @@ related_integrations = []
 required_fields = []
 risk_score = 47
 risk_score_mapping = []
-rule_id = "796a5953-456f-4255-8a19-55b7ad54c335"
+rule_id = "364a015b-0957-428d-a2d5-0de27c4979ac"
 setup = ""
 severity = "medium"
 severity_mapping = []
-tags = []
+tags = ["production"]
 to = "now"
 type = "query"
 
