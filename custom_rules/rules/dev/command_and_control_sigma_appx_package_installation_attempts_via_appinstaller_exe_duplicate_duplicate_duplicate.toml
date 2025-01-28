@@ -1,0 +1,73 @@
+[metadata]
+creation_date = "2025/01/28"
+integration = []
+maturity = "development"
+updated_date = "2025/01/28"
+
+[rule]
+actions = []
+author = ["frack113"]
+description = """
+Detects DNS queries made by "AppInstaller.EXE". The AppInstaller is the default handler for the "ms-appinstaller" URI.
+It attempts to load/install a package from the referenced URL
+"""
+enabled = false
+exceptions_list = []
+false_positives = ["Unknown"]
+filters = []
+from = "now-300s"
+index = [
+    "apm-*-transaction*",
+    "auditbeat-*",
+    "endgame-*",
+    "filebeat-*",
+    "logs-*",
+    "packetbeat-*",
+    "traces-apm*",
+    "winlogbeat-*",
+    "-*elastic-cloud-logs-*",
+]
+interval = "5m"
+language = "lucene"
+license = "DRL"
+max_signals = 100
+name = "SIGMA - AppX Package Installation Attempts Via AppInstaller.EXE [Duplicate] [Duplicate] [Duplicate]"
+references = [
+    "https://twitter.com/notwhickey/status/1333900137232523264",
+    "https://lolbas-project.github.io/lolbas/Binaries/AppInstaller/",
+]
+related_integrations = []
+required_fields = []
+risk_score = 47
+risk_score_mapping = []
+rule_id = "913c8ed6-4da4-4795-afbf-bf3a8c8acde2"
+setup = ""
+severity = "medium"
+severity_mapping = []
+tags = ["production"]
+to = "now"
+type = "query"
+
+query = '''
+process.executable:C\:\\Program\ Files\\WindowsApps\\Microsoft.DesktopAppInstaller_* AND process.executable:*\\AppInstaller.exe
+'''
+
+
+[[rule.threat]]
+framework = "MITRE ATT&CK"
+[[rule.threat.technique]]
+id = "T1105"
+name = "Ingress Tool Transfer"
+reference = "https://attack.mitre.org/techniques/T1105/"
+subtechnique = []
+
+
+[rule.threat.tactic]
+id = "TA0011"
+name = "Command-And-Control"
+reference = "https://attack.mitre.org/tactics/TA0011/"
+
+[rule.meta]
+from = "0s"
+kibana_siem_app_url = ""
+
